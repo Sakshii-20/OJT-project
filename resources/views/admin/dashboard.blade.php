@@ -63,8 +63,8 @@
                     <input type="hidden" id="bookEditId">
                     <input type="text" id="bookId" placeholder="Book ID" class="p-2 border rounded" required>
                     <input type="text" id="bookTitle" placeholder="Title" class="p-2 border rounded" required>
-                    <input type="text" id="bookAuthor" placeholder="Author" class="p-2 border rounded" required>
-                    <input type="text" id="bookPublisher" placeholder="Publisher" class="p-2 border rounded" required>
+                    <input type="text" id="bookAuthor" placeholder="Author Name" class="p-2 border rounded" required>
+                    <input type="text" id="bookPublisher" placeholder="Publisher Name" class="p-2 border rounded" required>
                     <select id="bookStatus" class="p-2 border rounded">
                         <option value="Available">Available</option>
                         <option value="Issued">Issued</option>
@@ -160,8 +160,8 @@ function editBook(book){
     document.getElementById('bookId').value = book.book_id;
     document.getElementById('bookId').disabled = true;
     document.getElementById('bookTitle').value = book.title;
-    document.getElementById('bookAuthor').value = book.author;
-    document.getElementById('bookPublisher').value = book.publisher;
+    document.getElementById('bookAuthor').value = book.author ? book.author.name : '';
+    document.getElementById('bookPublisher').value = book.publisher ? book.publisher.name : '';
     document.getElementById('bookStatus').value = book.status;
     document.getElementById('bookFormContainer').classList.remove('hidden');
     document.getElementById('bookList').scrollIntoView({behavior: 'smooth'});
@@ -185,15 +185,32 @@ document.getElementById('bookForm').addEventListener('submit', function(e){
         method: method,
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
         },
         body: JSON.stringify(data)
-    }).then(r=>r.json()).then(resp=>{
-        alert(resp.message);
-        hideBookForm();
-        updateDashboard();
-        displayBooks();
-    }).catch(err=>{
+    })
+    .then(r=>{
+        if(!r.ok) {
+            if(r.status === 403) {
+                alert('Session expired! Please login again.');
+                window.location.href = '/login';
+                return;
+            }
+            throw new Error('HTTP error! status: ' + r.status);
+        }
+        return r.json();
+    })
+    .then(resp=>{
+        if(resp) {
+            alert(resp.message);
+            hideBookForm();
+            updateDashboard();
+            displayBooks();
+        }
+    })
+    .catch(err=>{
+        console.error('Error:', err);
         alert('Error: ' + err.message);
     });
 });
@@ -203,11 +220,13 @@ function displayBooks(){
         let html='';
         books.forEach(b=>{
             const badge = b.status==='Available'?'bg-green-100 text-green-800 px-2 py-1 rounded':'bg-red-100 text-red-800 px-2 py-1 rounded';
+            const authorName = b.author ? b.author.name : 'N/A';
+            const publisherName = b.publisher ? b.publisher.name : 'N/A';
             html+=`<tr class="border-b hover:bg-gray-50">
                 <td class="p-3">${b.book_id}</td>
                 <td class="p-3">${b.title}</td>
-                <td class="p-3">${b.author}</td>
-                <td class="p-3">${b.publisher}</td>
+                <td class="p-3">${authorName}</td>
+                <td class="p-3">${publisherName}</td>
                 <td class="p-3"><span class="${badge}">${b.status}</span></td>
                 <td class="p-3">
                     <button onclick='editBook(${JSON.stringify(b)})' class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 mr-2">Edit</button>

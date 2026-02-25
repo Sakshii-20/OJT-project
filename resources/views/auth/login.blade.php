@@ -35,6 +35,16 @@
 
             <!-- Login Form -->
             <div class="p-6">
+                <!-- Error Messages -->
+                @if ($errors->any())
+                    <div class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                        <div class="flex items-center">
+                            <i class="fa-solid fa-circle-exclamation mr-2"></i>
+                            <span class="text-sm font-medium">{{ $errors->first() }}</span>
+                        </div>
+                    </div>
+                @endif
+
                 <form method="POST" action="{{ route('login') }}">
                     @csrf
 
@@ -46,6 +56,7 @@
                         <input 
                             type="text" 
                             name="email" 
+                            value="{{ old('email') }}"
                             required 
                             class="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:border-blue-500 focus:outline-none transition bg-slate-50 text-sm"
                             placeholder="Enter your email or ID"

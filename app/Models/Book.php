@@ -9,10 +9,20 @@ class Book extends Model
     protected $fillable = [
         'book_id',
         'title',
-        'author',
-        'publisher',
+        'author_id',
+        'publisher_id',
         'status'
     ];
+
+    public function author()
+    {
+        return $this->belongsTo(Author::class);
+    }
+
+    public function publisher()
+    {
+        return $this->belongsTo(Publisher::class);
+    }
 
     public function issues()
     {

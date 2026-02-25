@@ -11,6 +11,9 @@ class EnsureUserRole
     public function handle(Request $request, Closure $next, string $role): Response
     {
         if (!$request->user() || $request->user()->role !== $role) {
+            if ($request->expectsJson() || $request->is('admin/*') || $request->is('student/*')) {
+                return response()->json(['error' => 'Unauthorized access'], 403);
+            }
             abort(403, 'Unauthorized access');
         }
 
